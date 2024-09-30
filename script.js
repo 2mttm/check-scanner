@@ -247,54 +247,66 @@ async function addDataToExistingSpreadsheet(spreadsheetId, data) {
 
 // Функция для создания нового документа в Google Sheets
 async function createSpreadsheet(data) {
-    const response = await gapi.client.sheets.spreadsheets.create({
-        properties: {
-            title: "Новый документ из QR-кода"
-        },
-        sheets: [
-            {
-                properties: {
-                    title: "Data"
-                },
-                data: [
-                    {
-                        rowData: [
-                            {
-                                values: [
-                                    { userEnteredValue: { stringValue: "Item" } },
-                                    { userEnteredValue: { stringValue: "Qty" } },
-                                    { userEnteredValue: { stringValue: "Price" } },
-                                    { userEnteredValue: { stringValue: "Date" } },
-                                ],
-                            },
-                        ],
-                    },
-                ],
+    if (!gapiInited) {
+        console.error('Google API не инициализирован');
+        Swal.fire("Ошибка", "Google API не инициализирован.", "error");
+        return;
+    }
+
+    try {
+        const dateValue = `${data[4][0].split(' ')[1]} ${data[4][1].split(' ')[1]}`; // Объединяем дату и время
+        const response = await gapi.client.sheets.spreadsheets.create({
+            properties: {
+                title: "Новый документ из QR-кода"
             },
-        ],
-    });
+            sheets: [
+                {
+                    properties: {
+                        title: "Data"
+                    },
+                    data: [
+                        {
+                            rowData: [
+                                {
+                                    values: [
+                                        { userEnteredValue: { stringValue: "Item" } },
+                                        { userEnteredValue: { stringValue: "Qty" } },
+                                        { userEnteredValue: { stringValue: "Price" } },
+                                        { userEnteredValue: { stringValue: "Date" } },
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+        });
 
-    console.log("Документ создан:", response);
-    Swal.fire("Успех", "Новый документ успешно создан.", "success");
+        console.log("Документ создан:", response);
+        Swal.fire("Успех", "Новый документ успешно создан.", "success");
 
-    // Добавляем данные
-    const values = data[0].map(item => ([
-        item.item,
-        item.qty,
-        item.price,
-        data[4][0].split(' ')[1] + ' ' + data[4][1].split(' ')[1],
-    ]));
+        // Добавляем данные
+        const values = data[0].map(item => ([
+            item.item,
+            item.qty,
+            item.price,
+            dateValue, // Используем объединенное значение даты и времени
+        ]));
 
-    await gapi.client.sheets.spreadsheets.values.append({
-        spreadsheetId: response.result.spreadsheetId,
-        range: "Data!A2", // Начинаем с A2, чтобы не перезаписывать заголовки
-        valueInputOption: 'RAW',
-        resource: {
-            values: values,
-        },
-    });
+        await gapi.client.sheets.spreadsheets.values.append({
+            spreadsheetId: response.result.spreadsheetId,
+            range: "Data!A2", // Начинаем с A2, чтобы не перезаписывать заголовки
+            valueInputOption: 'RAW',
+            resource: {
+                values: values,
+            },
+        });
 
-    Swal.fire("Успех", "Данные успешно добавлены в новый документ.", "success");
+        Swal.fire("Успех", "Данные успешно добавлены в новый документ.", "success");
+    } catch (error) {
+        console.error("Ошибка при создании документа:", error);
+        Swal.fire("Ошибка", "Не удалось создать документ.", "error");
+    }
 }
 
 // Инициализация Google API и авторизации
@@ -303,11 +315,16 @@ function gapiLoaded() {
 }
 
 async function initializeGapiClient() {
-    await gapi.client.init({
-        apiKey: API_KEY,
-        discoveryDocs: [DISCOVERY_DOC],
-    });
-    gapiInited = true;
+    try {
+        await gapi.client.init({
+            apiKey: API_KEY,
+            discoveryDocs: [DISCOVERY_DOC],
+        });
+        gapiInited = true;
+    } catch (error) {
+        console.error('Ошибка инициализации Google API', error);
+        Swal.fire("Ошибка", "Не удалось инициализировать Google API.", "error");
+    }
 }
 
 function gisLoaded() {
