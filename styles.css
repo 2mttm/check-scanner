@@ -1,0 +1,80 @@
+/* Основные стили для текста и расположения */
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+h1 {
+    margin-bottom: 20px;
+}
+
+#reader {
+    width: 100%;
+    max-width: 500px;
+    margin: 20px auto;
+}
+
+/* Стили для кнопок и поля ввода */
+input[type="text"], button {
+    width: 100%;
+    max-width: 500px;
+    padding: 15px;
+    margin: 10px 0;
+    font-size: 18px;
+    border: none;
+    border-radius: 5px;
+}
+
+button {
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Стили для блока с контентом */
+#content {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f0f0f0;
+    width: 100%;
+    max-width: 500px;
+    border-radius: 5px;
+    font-family: monospace;
+}
+
+/* Адаптация для мобильных устройств */
+@media (max-width: 768px) {
+    #start-scanner {
+        width: 100vw;
+        height: 50vh;
+        font-size: 24px;
+        padding: 20px;
+    }
+
+    input[type="text"], button {
+        width: 90vw;
+        font-size: 18px;
+    }
+
+    #reader {
+        width: 90vw;
+    }
+
+    #content {
+        width: 90vw;
+    }
+}
+
+@media (min-width: 769px) {
+    button, input[type="text"] {
+        padding: 10px 20px;
+    }
+}

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сканер QR-кода и парсер</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<h1>Сканер чеков</h1>
+
+<!-- Кнопка для запуска сканера -->
+<button id="start-scanner">Запустить сканер QR-кода</button>
+
+<!-- Поле для ввода QR-кода -->
+<input type="text" id="qr-result" placeholder="Ссылка на чек в mev.sfs.md">
+
+<!-- Кнопка для продолжения после ввода QR-кода -->
+<button id="continue">Продолжить</button>
+
+<!-- Блок для отображения спарсенного контента -->
+<div id="content"></div>
+
+<!-- Блок для камеры -->
+<div id="reader" style="display: none;"></div>
+
+<!-- Подключаем js файл -->
+<script src="https://unpkg.com/html5-qrcode/html5-qrcode.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
