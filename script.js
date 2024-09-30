@@ -229,7 +229,7 @@ async function addDataToExistingSpreadsheet(spreadsheetId, data) {
         item.item,
         item.qty,
         item.price,
-        data[4][0].split(' ')[1],
+        data[4][0].split(' ')[1] + ' ' + data[4][1].split(' ')[1],
     ]));
 
     await gapi.client.sheets.spreadsheets.values.append({
@@ -281,7 +281,7 @@ async function createSpreadsheet(data) {
         item.item,
         item.qty,
         item.price,
-        data[4][0].split(' ')[1],
+        data[4][0].split(' ')[1] + ' ' + data[4][1].split(' ')[1],
     ]));
 
     await gapi.client.sheets.spreadsheets.values.append({
