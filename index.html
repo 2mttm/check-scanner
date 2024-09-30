@@ -21,11 +21,17 @@
 <!-- Блок для отображения спарсенного контента -->
 <div id="content"></div>
 
+<!-- Блок для интеграции с Google Sheets -->
+<button id="send-to-sheets" style="display: none;">Отправить в Google Sheets</button>
+
 <!-- Блок для камеры -->
 <div id="reader" style="display: none;"></div>
 
-<!-- Подключаем js файл -->
+<!-- Подключаем js файлы -->
 <script src="https://unpkg.com/html5-qrcode/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="script.js"></script>
+<script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
+<script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
 </body>
 </html>
