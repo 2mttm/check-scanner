@@ -10,11 +10,11 @@ function startQrCodeScanner() {
     const html5QrCode = new Html5Qrcode("reader");
 
     // Параметры камеры (640x480)
-    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+    const config = {fps: 10, qrbox: {width: 250, height: 250}};
 
     // Начинаем сканирование камеры
     html5QrCode.start(
-        { facingMode: "environment" }, // Камера по умолчанию (задняя)
+        {facingMode: "environment"}, // Камера по умолчанию (задняя)
         config,
         qrCodeMessage => {
             // При успешном сканировании, вставляем QR-код в поле
@@ -46,6 +46,8 @@ async function fetchAndParseWebsite(url) {
         if (targetElement) {
             // Вставляем содержимое элемента на наш сайт
             document.getElementById('content').innerHTML = targetElement.innerHTML;
+
+            console.log(extractRelevantDivs(targetElement));
         } else {
             document.getElementById('content').innerHTML = "Элемент не найден!";
         }
@@ -55,11 +57,62 @@ async function fetchAndParseWebsite(url) {
     }
 }
 
+// Функция для извлечения div-ов с нужными классами
+function extractRelevantDivs(parentElement) {
+    let extractedContent = [];
+    let currentGroup;
+
+    let skip = false;
+
+    for (const child of parentElement.children) {
+        // Проверяем, есть ли у элемента классы "flex justify-between items-center"
+        if (child.classList.contains('flex') &&
+            child.classList.contains('justify-between') &&
+            child.classList.contains('items-center')) {
+
+            if (extractedContent.length === 0) {
+                if (!currentGroup) {
+                    currentGroup = [];
+                    skip = false;
+                }
+
+                if (skip) {
+                    skip = false;
+                    continue;
+                }
+
+                const qty = parseFloat(child.children[1].textContent.replaceAll(' ', '').split('x')[0]);
+                const price = parseFloat(child.children[1].textContent.replaceAll(' ', '').split('x')[1]);
+
+                currentGroup.push({
+                    item: child.children[0].textContent,
+                    qty: qty,
+                    price: price,
+                    total: qty * price,
+                });
+
+                skip = true;
+
+            } else {
+                if (!currentGroup) currentGroup = [];
+                for (const innerChild of child.children)
+                    currentGroup.push(innerChild.textContent.replaceAll('\n', '').trim())
+            }
+
+        } else if (currentGroup) {
+            extractedContent.push(currentGroup);
+            currentGroup = undefined;
+        }
+    }
+
+    return extractedContent || "Не удалось найти соответствующие блоки.";
+}
+
 // Обработчик клика для кнопки "Запустить сканер"
 document.getElementById('start-scanner').addEventListener('click', startQrCodeScanner);
 
 // Обработчик клика для кнопки "Продолжить"
-document.getElementById('continue').addEventListener('click', function() {
+document.getElementById('continue').addEventListener('click', function () {
     const qrCode = document.getElementById('qr-result').value;
     if (qrCode) {
         fetchAndParseWebsite(qrCode);
