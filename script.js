@@ -44,7 +44,8 @@ function startQrCodeScanner() {
 
 // Обработчик клика для кнопки "Продолжить"
 function handleContinueClick() {
-    const qrCode = document.getElementById('qr-result').value;
+    let qrCode = document.getElementById('qr-result').value;
+    if (qrCode.startsWith('https://sift-mev.sfs.md/receipt/')) qrCode = 'https://mev.sfs.md/receipt-verifier/' + qrCode.split('/')[4]
     if (qrCode) {
         fetchAndParseWebsite(qrCode);
     } else {
