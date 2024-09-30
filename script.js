@@ -31,15 +31,10 @@ function startQrCodeScanner() {
 
 // Функция для парсинга сайта по ссылке
 async function fetchAndParseWebsite(url) {
-    const proxyUrl = 'https://cors.sh/';
-    const proxyApiKey = 'temp_dab565c108b1c27b3703ec7d3a4e7aed';
+    const proxyUrl = 'https://corsproxy.io/?';
 
     try {
-        const response = await fetch(proxyUrl + url, {
-                headers: {
-                    'x-cors-api-key': proxyApiKey
-                }
-            });
+        const response = await fetch(proxyUrl + encodeURIComponent(url));
         const html = await response.text();
 
         // Создаем временный элемент для разбора полученного HTML
