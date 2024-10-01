@@ -3,28 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Сканер QR-кода и парсер</title>
+    <title>Receipt Scanner & Parser</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<h1>Сканер чеков</h1>
+<h1>Receipt Scanner & Parser</h1>
 
-<!-- Блок для камеры -->
 <div id="reader"></div>
-    
-<!-- Поле для ввода QR-кода -->
-<input type="text" id="qr-result" placeholder="Ссылка на чек в mev.sfs.md">
 
-<!-- Кнопка для продолжения после ввода QR-кода -->
-<button id="continue">Продолжить</button>
+<input type="text" id="qr-result" placeholder="Receipt link to mev.sfs.md">
 
-<!-- Блок для отображения спарсенного контента -->
+<button id="continue">Get Receipt</button>
+
 <div id="content"></div>
 
-<!-- Блок для интеграции с Google Sheets -->
-<button id="send-to-sheets" style="display: none;">Отправить в Google Sheets</button>
+<button id="send-to-sheets" style="display: none;">Send to Google Sheets</button>
 
-<!-- Подключаем js файлы -->
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="script.js"></script>

@@ -10,7 +10,7 @@ let checkData = '';
 
 let html5QrcodeScanner = new Html5QrcodeScanner(
     "reader",
-    { fps: 10, qrbox: {width: 250, height: 250} });
+    {fps: 10, qrbox: {width: 250, height: 250}});
 html5QrcodeScanner.render(onScanSuccess, onScanError)
 
 // Инициализация событий и обработчиков
@@ -22,6 +22,7 @@ function init() {
 function onScanSuccess(decodedText, decodedResult) {
     const qrResultInput = document.getElementById('qr-result');
     qrResultInput.value = decodedText;
+    html5QrcodeScanner.stop()
     // html5QrcodeScanner.clear();
 }
 
@@ -36,7 +37,10 @@ function handleContinueClick() {
     if (qrCode) {
         fetchAndParseWebsite(qrCode);
     } else {
-        Swal.fire("Ошибка", "Пожалуйста, введите QR-код или отсканируйте его", "error");
+        Swal.fire({
+            title: "Please scan or insert a link to mev.sfs.md",
+            icon: "error",
+        });
     }
 }
 
@@ -49,9 +53,9 @@ async function fetchAndParseWebsite(url) {
         const html = await response.text();
         parseHtml(html);
     } catch (error) {
-        Swal.fire("Ошибка", "Ошибка при парсинге сайта", "error");
-        console.error("Ошибка при парсинге сайта:", error);
-        document.getElementById('content').innerHTML = "Ошибка при получении данных!";
+        Swal.fire({title: "Error on fetching step. Please contact developer.", icon: "error"});
+        console.error("Parsing or fetching error:", error);
+        document.getElementById('content').innerHTML = "Parsing error!";
     }
 }
 
@@ -67,7 +71,7 @@ function parseHtml(html) {
         checkData = extractRelevantDivs(targetElement);
         console.log(checkData);
     } else {
-        document.getElementById('content').innerHTML = "Элемент не найден!";
+        document.getElementById('content').innerHTML = "Element not found!";
     }
 }
 
@@ -77,7 +81,9 @@ function extractRelevantDivs(parentElement) {
     let currentGroup;
     let skip = false;
 
-    for (const child of parentElement.children) {
+    for (let i = 0; i < parentElement.children.length; i++) {
+        const child = parentElement.children[i]
+
         if (child.classList.contains('flex') &&
             child.classList.contains('justify-between') &&
             child.classList.contains('items-center')) {
@@ -88,21 +94,23 @@ function extractRelevantDivs(parentElement) {
                     skip = false;
                 }
 
-            if (skip) {
-                skip = false;
-                continue;
-            }
+                if (skip) {
+                    skip = false;
+                    continue;
+                }
 
-            const qty = parseFloat(child.children[1].textContent.replaceAll(' ', '').split('x')[0]);
-            const price = parseFloat(child.children[1].textContent.replaceAll(' ', '').split('x')[1]);
+                const qty = parseFloat(child.children[1].textContent.replaceAll(' ', '').split('x')[0]);
+                const price = parseFloat(child.children[1].textContent.replaceAll(' ', '').split('x')[1]);
+                const total = parseFloat(parentElement.children[i+1].children[1].textContent);
 
-            currentGroup.push({
-                item: child.children[0].textContent,
-                qty: qty,
-                price: price,
-            });
+                currentGroup.push({
+                    item: child.children[0].textContent,
+                    qty: qty,
+                    price: price,
+                    total: total,
+                });
 
-            skip = true;
+                skip = true;
 
             } else {
                 if (!currentGroup) currentGroup = [];
@@ -116,7 +124,7 @@ function extractRelevantDivs(parentElement) {
         }
     }
 
-    return extractedContent.length ? extractedContent : "Не удалось найти соответствующие блоки.";
+    return extractedContent.length ? extractedContent : "Could not find the data groups.";
 }
 
 // Обработчик клика для кнопки "Send to Google Sheets"
@@ -126,18 +134,18 @@ async function handleSendToSheetsClick() {
 
 // Функция для отправки данных в Google Sheets
 async function sendDataToSheets(data) {
-    const { isConfirmed } = await Swal.fire({
-        title: 'Создать новый документ?',
+    const {isConfirmed} = await Swal.fire({
+        title: 'Create a new Google Sheets document?',
         showCancelButton: true,
-        confirmButtonText: 'Да',
-        cancelButtonText: 'Нет',
+        confirmButtonText: 'Yes',
+        cancelButtonText: 'No (use an existing one)',
     });
 
     if (isConfirmed) {
         createSpreadsheet(data);
     } else {
-        const { value: spreadsheetId } = await Swal.fire({
-            title: 'Введите ID существующего документа',
+        const {value: spreadsheetId} = await Swal.fire({
+            title: 'Insert ID of an existing document',
             input: 'text',
             showCancelButton: true,
         });
@@ -177,16 +185,18 @@ async function addDataToExistingSpreadsheet(spreadsheetId, data) {
             // Добавляем заголовки после создания листа
             return gapi.client.sheets.spreadsheets.values.update({
                 spreadsheetId: spreadsheetId,
-                range: `${sheetName}!A1:D1`,
+                range: `${sheetName}!A1:E1`,
                 valueInputOption: 'RAW',
                 resource: {
-                    values: [['Item', 'Qty', 'Price', 'Date']],
+                    values: [['Item', 'Date', 'Qty', 'Price', 'Total']],
                 },
             });
         }).catch((err) => {
-            console.error("Ошибка при добавлении листа:", err);
-            Swal.fire("Ошибка", "Не удалось добавить лист.", "error");
-            return;
+            console.error("Error on adding sheet:", err);
+            Swal.fire({
+                title: "Could not create a sheet",
+                icon: "error"
+            });
         });
     } else {
         // Если лист существует, добавляем заголовки только если они отсутствуют
@@ -199,21 +209,23 @@ async function addDataToExistingSpreadsheet(spreadsheetId, data) {
         if (!headers || headers.length === 0) {
             await gapi.client.sheets.spreadsheets.values.update({
                 spreadsheetId: spreadsheetId,
-                range: `${sheetName}!A1:D1`,
+                range: `${sheetName}!A1:E1`,
                 valueInputOption: 'RAW',
                 resource: {
-                    values: [['Item', 'Qty', 'Price', 'Date']],
+                    values: [['Item', 'Date', 'Qty', 'Price', 'Total']],
                 },
             });
         }
     }
 
     // Добавляем данные
+    const dateValue = `${data[4][0].split(' ')[1]} ${data[4][1].split(' ')[1]}`; // Объединяем дату и время
     const values = data[0].map(item => ([
         item.item,
+        dateValue,
         item.qty,
         item.price,
-        data[4][0].split(' ')[1] + ' ' + data[4][1].split(' ')[1],
+        item.total,
     ]));
 
     await gapi.client.sheets.spreadsheets.values.append({
@@ -225,14 +237,18 @@ async function addDataToExistingSpreadsheet(spreadsheetId, data) {
         },
     });
 
-    Swal.fire("Успех", "Данные успешно добавлены в существующий документ.", "success");
+    Swal.fire({
+        title: "All the data has been added successfully!",
+        text: `https://docs.google.com/spreadsheets/d/${spreadsheetId}`,
+        icon: "success"
+    });
 }
 
 // Функция для создания нового документа в Google Sheets
 async function createSpreadsheet(data) {
     if (!gapiInited) {
-        console.error('Google API не инициализирован');
-        Swal.fire("Ошибка", "Google API не инициализирован.", "error");
+        console.error('Google API not initialized');
+        Swal.fire({title: "Google API not initialized", icon: "error"});
         return;
     }
 
@@ -240,7 +256,7 @@ async function createSpreadsheet(data) {
         const dateValue = `${data[4][0].split(' ')[1]} ${data[4][1].split(' ')[1]}`; // Объединяем дату и время
         const response = await gapi.client.sheets.spreadsheets.create({
             properties: {
-                title: "Новый документ из QR-кода"
+                title: "Abobus " + new Date().toJSON()
             },
             sheets: [
                 {
@@ -252,10 +268,11 @@ async function createSpreadsheet(data) {
                             rowData: [
                                 {
                                     values: [
-                                        { userEnteredValue: { stringValue: "Item" } },
-                                        { userEnteredValue: { stringValue: "Qty" } },
-                                        { userEnteredValue: { stringValue: "Price" } },
-                                        { userEnteredValue: { stringValue: "Date" } },
+                                        {userEnteredValue: {stringValue: "Item"}},
+                                        {userEnteredValue: {stringValue: "Date"}},
+                                        {userEnteredValue: {stringValue: "Qty"}},
+                                        {userEnteredValue: {stringValue: "Price"}},
+                                        {userEnteredValue: {stringValue: "Total"}},
                                     ],
                                 },
                             ],
@@ -265,34 +282,38 @@ async function createSpreadsheet(data) {
             ],
         });
 
-        console.log("Документ создан:", response);
-        Swal.fire("Успех", "Новый документ успешно создан.", "success");
+        const spreadsheetUrl = response.result.spreadsheetUrl;
+        console.log("Document created:", response);
+        Swal.fire({
+            title: "New document successfully created",
+            html: `<a href="${spreadsheetUrl}" target="_blank">Open Spreadsheet</a>`,
+            icon: "success",
+        });
 
-        // Добавляем данные
         const values = data[0].map(item => ([
             item.item,
+            dateValue,
             item.qty,
             item.price,
-            dateValue, // Используем объединенное значение даты и времени
+            item.total,
         ]));
 
         await gapi.client.sheets.spreadsheets.values.append({
             spreadsheetId: response.result.spreadsheetId,
-            range: "Data!A2", // Начинаем с A2, чтобы не перезаписывать заголовки
+            range: "Data!A2",
             valueInputOption: 'RAW',
             resource: {
                 values: values,
             },
         });
 
-        Swal.fire("Успех", "Данные успешно добавлены в новый документ.", "success");
     } catch (error) {
-        console.error("Ошибка при создании документа:", error);
-        Swal.fire("Ошибка", "Не удалось создать документ.", "error");
+        console.error("Could not create a new document:", error);
+        Swal.fire({title: "Could not create a new document", icon: "error"});
     }
 }
 
-// Инициализация Google API и авторизации
+// Google API initialization and authorization
 function gapiLoaded() {
     gapi.load('client', initializeGapiClient);
 }
@@ -305,8 +326,8 @@ async function initializeGapiClient() {
         });
         gapiInited = true;
     } catch (error) {
-        console.error('Ошибка инициализации Google API', error);
-        Swal.fire("Ошибка", "Не удалось инициализировать Google API.", "error");
+        console.error('Google API initialization error:', error);
+        Swal.fire({title: "Could not initialize Google API", icon: "error"});
     }
 }
 
@@ -315,10 +336,20 @@ function gisLoaded() {
         client_id: CLIENT_ID,
         scope: SCOPES,
         callback: async (resp) => {
-            if (resp.error) {
-                throw resp;
+            try {
+                if (resp.error) {
+                    throw new Error(resp.error);
+                }
+                await sendDataToSheets(checkData);
+            } catch (error) {
+                console.error(error)
+                Swal.fire({
+                        title: "Google Sheets error",
+                        text: JSON.stringify(JSON.parse(error.body).error),
+                        icon: "error"
+                    }
+                )
             }
-            await sendDataToSheets(checkData); // Вызываем после успешной аутентификации
         },
     });
     gisInited = true;
@@ -326,11 +357,10 @@ function gisLoaded() {
 
 async function signIn() {
     if (gapi.client.getToken() === null) {
-        tokenClient.requestAccessToken({ prompt: 'consent' });
+        tokenClient.requestAccessToken({prompt: 'consent'});
     } else {
-        tokenClient.requestAccessToken({ prompt: '' });
+        tokenClient.requestAccessToken({prompt: ''});
     }
 }
 
-// Запуск инициализации при загрузке страницы
 init();
