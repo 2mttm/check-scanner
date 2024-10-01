@@ -9,11 +9,8 @@
 <body>
 <h1>Сканер чеков</h1>
 
-<!-- Кнопка для запуска сканера -->
-<button id="start-scanner">Запустить сканер QR-кода</button>
-
 <!-- Блок для камеры -->
-<div id="reader" style="display: none;"></div>
+<div id="reader"></div>
     
 <!-- Поле для ввода QR-кода -->
 <input type="text" id="qr-result" placeholder="Ссылка на чек в mev.sfs.md">
@@ -28,7 +25,7 @@
 <button id="send-to-sheets" style="display: none;">Отправить в Google Sheets</button>
 
 <!-- Подключаем js файлы -->
-<script src="https://unpkg.com/html5-qrcode/html5-qrcode.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="script.js"></script>
 <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>

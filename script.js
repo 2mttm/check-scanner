@@ -8,53 +8,25 @@ let gapiInited = false;
 let gisInited = false;
 let checkData = '';
 
+let html5QrcodeScanner = new Html5QrcodeScanner(
+    "reader",
+    { fps: 10, qrbox: {width: 250, height: 250} });
+html5QrcodeScanner.render(onScanSuccess, onScanError)
+
 // Инициализация событий и обработчиков
 function init() {
-    document.getElementById('start-scanner').addEventListener('click', startQrCodeScanner);
     document.getElementById('continue').addEventListener('click', handleContinueClick);
     document.getElementById('send-to-sheets').addEventListener('click', handleSendToSheetsClick);
 }
 
-function hideScannerButton() {
-    document.getElementById('start-scanner').style.display = 'none';
-}
-function showScannerButton() {
-    document.getElementById('start-scanner').style.display = 'inline';
-}
-// Функция для запуска сканера QR-кода
-function startQrCodeScanner() {
-    hideScannerButton()
+function onScanSuccess(decodedText, decodedResult) {
     const qrResultInput = document.getElementById('qr-result');
-    const reader = document.getElementById('reader');
+    qrResultInput.value = decodedText;
+    // html5QrcodeScanner.clear();
+}
 
-    // Отображаем блок камеры
-    reader.style.display = "block";
-
-    const html5QrCode = new Html5Qrcode("reader");
-    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-
-    // Начинаем сканирование камеры
-    navigator.mediaDevices.getUserMedia({ video: true })
-    .then((stream) => {
-        // Камера активирована, запускаем сканер
-        html5QrCode.start(
-            { facingMode: "environment" },
-            config,
-            (qrCodeMessage) => {
-                qrResultInput.value = qrCodeMessage;
-                html5QrCode.stop();
-                showScannerButton()
-            },
-            (errorMessage) => {
-                console.warn(`Ошибка сканирования: ${errorMessage}`);
-            }
-        );
-    })
-    .catch((err) => {
-        console.error("Ошибка доступа к камере:", err);
-        alert("Ошибка доступа к камере. Проверьте разрешения.");
-    });
-
+function onScanError(errorMessage) {
+    // console.warn(`Ошибка сканирования: ${errorMessage}`);
 }
 
 // Обработчик клика для кнопки "Продолжить"
@@ -64,13 +36,8 @@ function handleContinueClick() {
     if (qrCode) {
         fetchAndParseWebsite(qrCode);
     } else {
-        alert("Пожалуйста, введите QR-код или отсканируйте его.");
+        Swal.fire("Ошибка", "Пожалуйста, введите QR-код или отсканируйте его", "error");
     }
-}
-
-// Обработчик клика для кнопки "Send to Google Sheets"
-async function handleSendToSheetsClick() {
-    await signIn();  // Запрашиваем авторизацию перед отправкой данных
 }
 
 // Функция для парсинга сайта по ссылке
@@ -82,6 +49,7 @@ async function fetchAndParseWebsite(url) {
         const html = await response.text();
         parseHtml(html);
     } catch (error) {
+        Swal.fire("Ошибка", "Ошибка при парсинге сайта", "error");
         console.error("Ошибка при парсинге сайта:", error);
         document.getElementById('content').innerHTML = "Ошибка при получении данных!";
     }
