@@ -9,6 +9,9 @@
 <body>
 <h1>Сканер чеков</h1>
 
+<!-- Блок для камеры -->
+<div id="reader" style="display: none;"></div>
+
 <!-- Кнопка для запуска сканера -->
 <button id="start-scanner">Запустить сканер QR-кода</button>
 
@@ -23,9 +26,6 @@
 
 <!-- Блок для интеграции с Google Sheets -->
 <button id="send-to-sheets" style="display: none;">Отправить в Google Sheets</button>
-
-<!-- Блок для камеры -->
-<div id="reader" style="display: none;"></div>
 
 <!-- Подключаем js файлы -->
 <script src="https://unpkg.com/html5-qrcode/html5-qrcode.min.js"></script>
