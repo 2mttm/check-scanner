@@ -236,10 +236,10 @@ async function addDataToExistingSpreadsheet(spreadsheetId, data) {
             values: values,
         },
     });
-
+    const spreadsheetUrl = 'https://docs.google.com/spreadsheets/d/' + spreadsheetId;
     Swal.fire({
         title: "All the data has been added successfully!",
-        text: `https://docs.google.com/spreadsheets/d/${spreadsheetId}`,
+        html: `<a href="${spreadsheetUrl}" target="_blank">Open Spreadsheet</a>`,
         icon: "success"
     });
 }
