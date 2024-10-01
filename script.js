@@ -15,8 +15,15 @@ function init() {
     document.getElementById('send-to-sheets').addEventListener('click', handleSendToSheetsClick);
 }
 
+function hideScannerButton() {
+    document.getElementById('start-scanner').style.display = 'none';
+}
+function showScannerButton() {
+    document.getElementById('start-scanner').style.display = 'inline';
+}
 // Функция для запуска сканера QR-кода
 function startQrCodeScanner() {
+    hideScannerButton()
     const qrResultInput = document.getElementById('qr-result');
     const reader = document.getElementById('reader');
 
@@ -36,6 +43,7 @@ function startQrCodeScanner() {
             (qrCodeMessage) => {
                 qrResultInput.value = qrCodeMessage;
                 html5QrCode.stop();
+                showScannerButton()
             },
             (errorMessage) => {
                 console.warn(`Ошибка сканирования: ${errorMessage}`);
