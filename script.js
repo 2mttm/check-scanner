@@ -8,6 +8,10 @@ let gapiInited = false;
 let gisInited = false;
 let checkData = '';
 
+// TODO: settings (keep account, set spreadsheet id)
+// TODO: stop the scanner on successful scan but don't clear it
+
+
 let html5QrcodeScanner = new Html5QrcodeScanner(
     "reader",
     {fps: 10, qrbox: {width: 250, height: 250}});
