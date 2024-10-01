@@ -22,7 +22,6 @@ function init() {
 function onScanSuccess(decodedText, decodedResult) {
     const qrResultInput = document.getElementById('qr-result');
     qrResultInput.value = decodedText;
-    html5QrcodeScanner.clear();
 }
 
 function onScanError(errorMessage) {
