@@ -27,19 +27,26 @@ function startQrCodeScanner() {
     const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
     // Начинаем сканирование камеры
-    html5QrCode.start(
-        { facingMode: "environment" },
-        config,
-        (qrCodeMessage) => {
-            qrResultInput.value = qrCodeMessage;
-            html5QrCode.stop();
-        },
-        (errorMessage) => {
-            console.warn(`Ошибка сканирования: ${errorMessage}`);
-        }
-    ).catch(err => {
-        console.error(`Ошибка инициализации камеры: ${err}`);
+    navigator.mediaDevices.getUserMedia({ video: true })
+    .then((stream) => {
+        // Камера активирована, запускаем сканер
+        html5QrCode.start(
+            { facingMode: "environment" },
+            config,
+            (qrCodeMessage) => {
+                qrResultInput.value = qrCodeMessage;
+                html5QrCode.stop();
+            },
+            (errorMessage) => {
+                console.warn(`Ошибка сканирования: ${errorMessage}`);
+            }
+        );
+    })
+    .catch((err) => {
+        console.error("Ошибка доступа к камере:", err);
+        alert("Ошибка доступа к камере. Проверьте разрешения.");
     });
+
 }
 
 // Обработчик клика для кнопки "Продолжить"
